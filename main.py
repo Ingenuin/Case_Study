@@ -1,6 +1,10 @@
 import streamlit as st
 from users import User
 from devices import Device
+from database_inheritance import DatabaseConnector
+from database_inheritance import DateSerializer
+from database_inheritance import TimeSerializer
+from streamlit_option_menu import option_menu
 
 def main():
     st.title("Device and User Management")
@@ -15,6 +19,12 @@ def main():
 
 def manage_users():
     st.header("User Management")
+
+    # 2. horizontal menu
+    selected2 = option_menu(None, ["Home", "User", "Devices", 'Settings'], 
+    icons=['house', 'cloud-upload', "list-task", 'gear'], 
+    menu_icon="cast", default_index=0, orientation="horizontal")
+    selected2
 
     # Choose user action (change or delete)
     action = st.radio("Select action:", ["Add User", "Change User", "Delete User"])
@@ -38,25 +48,30 @@ def manage_users():
     if action == "Change User":
         # Change existing user (only allows changing the name)
         st.subheader("Change User")
-        user_email_to_change = st.text_input("Enter user email to change:")
+
+        # Create a selectbox with the list of user emails
+        user_email_to_change = st.selectbox("Select user to change name:", [user['email'] for user in User.find_all()])
+
         new_name = st.text_input("Enter new name:")
-        
+
         if st.button("Change User"):
             change_user(user_email_to_change, new_name)
+            
 
     elif action == "Delete User":
         # Delete existing user
         st.subheader("Delete User")
-        user_email_to_delete = st.text_input("Enter user email to delete:")
+        user_email_to_delete = st.selectbox("Select user to delete:", [user['email'] for user in User.find_all()])
 
         if st.button("Delete User"):
             delete_user(user_email_to_delete)
 
         # Display existing users
     st.subheader("Existing Users")
-    all_users = User.find_all()
-    for user in all_users:
-        st.text(f"Name: {user['name']}\nEmail: {user['email']}\n")
+
+    user_to_show = st.selectbox("Select user to display:", [user['email'] for user in User.find_all()])
+    st.text(User.load_by_id(user_to_show))
+
 
 
 def change_user(user_email, new_name):
@@ -90,7 +105,8 @@ def manage_devices():
         # Add new device
         st.subheader("Add New Device")
         device_name = st.text_input("Device Name:")
-        managed_by_user_id = st.text_input("Responsible User ID:")
+        managed_by_user_id = st.selectbox("Select responsible user:", [user['email'] for user in User.find_all()])
+
 
         if st.button("Add Device"):
             if not device_name or not managed_by_user_id:
@@ -118,12 +134,21 @@ def manage_devices():
         if st.button("Delete Device"):
             delete_device(device_name_to_delete)
 
-    # Display existing devices
-    st.subheader("Existing Devices")
-    all_devices = Device.find_all()
-    for device in all_devices:
-        st.text(f"Device Name: {device['device_name']}\nResponsible User ID: {device['managed_by_user_id']}\n")
+    devices = Device.find_all()
+    devices_to_show = st.selectbox("Select device to display:", [device['device_name'] for device in devices])
 
+    selected_device = Device.load_by_id(devices_to_show)
+    if selected_device:
+        st.text("Device Info:")
+        st.text(f"  ID: {selected_device.id}")
+        st.text(f"  Device Name: {selected_device.device_name}")
+        st.text(f"  Managed By User ID: {selected_device.managed_by_user_id}")
+        st.text(f"  Is Active: {selected_device.is_active}")
+        st.text(f"  End of Life: {selected_device.end_of_life}")
+        st.text(f"  Creation Date: {selected_device._Device__creation_date}")
+        st.text(f"  Last Update: {selected_device._Device__last_update}")
+    else:
+        st.text("Device not found.")
 
 def change_device(device_name, new_name):
     device_to_change = Device.load_by_id(device_name)
