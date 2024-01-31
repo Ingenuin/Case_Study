@@ -8,7 +8,7 @@ from tinydb import Query
 
 class Device(Serializable):
 
-    def __init__(self, device_name: str, managed_by_user_id: str, end_of_life: datetime = None, creation_date: datetime = None, last_update: datetime = None):
+    def __init__(self, device_name: str, managed_by_user_id: str, end_of_life: datetime = None, creation_date: datetime = None, last_update: datetime = None, last_maintenance: datetime = None):
         super().__init__(device_name)
         self.device_name = device_name
         # The user id of the user that manages the device
@@ -19,6 +19,7 @@ class Device(Serializable):
         self.end_of_life = end_of_life if end_of_life else datetime.today().date()
         self.__creation_date = creation_date if creation_date else datetime.today().date()
         self.__last_update = last_update if last_update else datetime.today().date()
+        self.__last_maintenance = last_update if last_update else datetime.today().date()
     
     @classmethod
     def get_db_connector(cls):

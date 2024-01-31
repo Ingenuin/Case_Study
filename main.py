@@ -5,6 +5,9 @@ from database_inheritance import DatabaseConnector
 from database_inheritance import DateSerializer
 from database_inheritance import TimeSerializer
 from streamlit_option_menu import option_menu
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 
 def main():
     st.title("Device and User Management")
@@ -99,13 +102,14 @@ def manage_devices():
     st.header("Device Management")
 
     # Choose device action (add, change, or delete)
-    action = st.radio("Select action:", ["Add Device", "Change Device", "Delete Device"])
+    action = st.radio("Select action:", ["Add Device", "Change Device", "Delete Device","Maintenace"])
    
     if action == "Add Device":
         # Add new device
         st.subheader("Add New Device")
         device_name = st.text_input("Device Name:")
         managed_by_user_id = st.selectbox("Select responsible user:", [user['email'] for user in User.find_all()])
+        last_maintenance = datetime.today()
 
 
         if st.button("Add Device"):
@@ -134,6 +138,16 @@ def manage_devices():
         if st.button("Delete Device"):
             delete_device(device_name_to_delete)
 
+    elif action == "Maintenance":
+        #checks for devices who need to be maintained
+        st.subheader ("Maintain")
+        last_maintenance = st.text_input("Enter Device to Maintain")
+        
+        if st.button("Device Maintained"):
+            maintenance = datetime.date()
+            device_name = st.selectbox("Select the device which has been maintained:", [device['device_name'] for device in devices])
+            device_maintenance(device_name, maintenance_date)
+
     devices = Device.find_all()
     devices_to_show = st.selectbox("Select device to display:", [device['device_name'] for device in devices])
 
@@ -147,6 +161,7 @@ def manage_devices():
         st.text(f"  End of Life: {selected_device.end_of_life}")
         st.text(f"  Creation Date: {selected_device._Device__creation_date}")
         st.text(f"  Last Update: {selected_device._Device__last_update}")
+        st.text(f"  Last Maintenace: {selected_device._Device__last_maintenance}")
     else:
         st.text("Device not found.")
 
@@ -166,6 +181,12 @@ def delete_device(device_name):
         st.success("Device deleted successfully!")
     else:
         st.error("Device not found.")
+
+def device_maintenance(device_name, maintenance_date):
+    current_date = datetime.today()
+    
+    if (current_date - relativedelta(years=1)) >= 0:
+        st.error("Device needs to be maintained please schedule an appointment")
 
 if __name__ == "__main__":
     main()
