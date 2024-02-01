@@ -233,7 +233,7 @@ def reserve_device():
     devices = Device.find_all()
     st.subheader("Reserve Device")
     device_name_to_reserve = st.selectbox("Select device to reserve:", [device['device_name'] for device in devices])
-    user_email = st.selectbox("Select user for reservation:", [user['email'] for user in User.find_all()])
+    user_email = st.selectbox("Select user:", [user['email'] for user in User.find_all()])
     start_date = st.date_input("Select start date:", min_value=datetime.today().date())
     end_date = st.date_input("Select end date:")
 
