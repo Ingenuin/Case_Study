@@ -4,9 +4,6 @@ from datetime import datetime
 from users import User
 from devices import Device
 from streamlit_option_menu import option_menu
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-
 
 def main():
     selected = option_menu(
@@ -108,7 +105,7 @@ def manage_devices():
 
     action = option_menu(
         None,
-        ["Add", "Change", "Delete", "Reserve", "Maintenance"],
+        ["Add", "Change", "Delete", "Reserve"],
         icons=['plus', 'arrow-repeat', "x", "calendar"],
         menu_icon="cast",
         default_index=0,
@@ -123,7 +120,6 @@ def manage_devices():
         delete_device()
     elif action == "Reserve":
         reserve_device()
-    elif action == "Maintenance"
 
     display_existing_devices(devices)
 
@@ -144,23 +140,14 @@ def handle_add_device(device_name, managed_by_user_id):
         start_date = st.date_input("Select start date:", min_value=datetime.today().date())
         end_date = st.date_input("Select end date:", min_value=start_date)
 
+        if end_date < start_date:
+            st.error("End date cannot be earlier than start date.")
+        else:
+            new_device = Device(device_name, managed_by_user_id, start_date, end_date)
+            new_device.store()
+            st.success("Device added successfully!")
 
-  elif action == "Maintenance":
-        #checks for devices that need to be maintained
-        st.subheader("Maintain")
-        devices = Device.find_all()
-        device_to_maintain = st.selectbox("Select device to maintain:", [device['device_name'] for device in devices])
-
-        # "Device Maintained" button is now outside the block
-        if st.button("Device Maintained"):
-            
-            maintenance_date = datetime.today().date()
-            device_maintenance(device_to_maintain, maintenance_date)
-            
-            maintained_device = Device(device_to_maintain,maintenance_date)
-
-
-
+def change_device():
     devices = Device.find_all()
     st.subheader("Change Device")
     device_name_to_change = st.selectbox("Select device to change:", [device['device_name'] for device in devices])
@@ -228,29 +215,13 @@ def display_existing_devices(devices):
         st.text(f"  Managed By User ID: {selected_device.managed_by_user_id}")
         st.text(f"  Is Active: {selected_device.is_active}")
         st.text(f"  End of Life: {selected_device.end_of_life}")
-        st.text(f"  Creation Date: {selected_device._Device__creation_date}")
-        st.text(f"  Last Update: {selected_device._Device__last_update}")
-        st.text(f"  Last Maintenace: {selected_device._Device__last_maintenance}")
+        st.text(f"  Creation Date: {selected_device.creation_date}")
+        st.text(f"  Last Update: {selected_device.last_update}")
+        st.text("Reservations:")
+        for reservation in selected_device.get_reservations():
+            st.text(f"  - Start Date: {reservation.start_date}, End Date: {reservation.end_date}, User: {reservation.user_email}")
     else:
         st.text("Device not found.")
-
-
-def device_maintenance(device_name, maintenance_date):
-    
-    device_to_maintain = Device.load_by_id(device_name)
-    current_date = datetime.today().date()
-
-    # Calculate the time difference between current date and maintenance date
-    time_difference = current_date - maintenance_date
-
-    # Check if the maintenance is needed (last maintenance more than a year ago)
-    if time_difference.days >= 365:  
-        st.error("Device needs to be maintained. Please schedule an appointment.")
-    else:
-        st.success("Device maintenance is up to date.")
-        device_to_maintain.store()
-
-
 
 if __name__ == "__main__":
     main()
