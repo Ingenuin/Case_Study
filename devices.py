@@ -14,7 +14,7 @@ class Reservation:
 
 class Device(Serializable):
 
-    def __init__(self, device_name: str, managed_by_user_id: str, end_of_life: datetime = None, creation_date: datetime = None, last_update: datetime = None):
+    def __init__(self, device_name: str, managed_by_user_id: str, end_of_life: datetime = None, creation_date: datetime = None, last_update: datetime = None,maintenance_date: datetime = None):
         super().__init__(device_name)
         self.device_name = device_name
         self.managed_by_user_id = managed_by_user_id
