@@ -4,9 +4,6 @@ from datetime import datetime
 from users import User
 from devices import Device
 from streamlit_option_menu import option_menu
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-
 
 def main():
     selected = option_menu(
@@ -261,9 +258,11 @@ def display_existing_devices(devices):
         st.text(f"  Managed By User ID: {selected_device.managed_by_user_id}")
         st.text(f"  Is Active: {selected_device.is_active}")
         st.text(f"  End of Life: {selected_device.end_of_life}")
-        st.text(f"  Creation Date: {selected_device._Device__creation_date}")
-        st.text(f"  Last Update: {selected_device._Device__last_update}")
-        st.text(f"  Last Maintenace: {selected_device._Device__last_maintenance}")
+        st.text(f"  Creation Date: {selected_device.creation_date}")
+        st.text(f"  Last Update: {selected_device.last_update}")
+        st.text("Reservations:")
+        for reservation in selected_device.get_reservations():
+            st.text(f"  - Start Date: {reservation.start_date}, End Date: {reservation.end_date}, User: {reservation.user_email}")
     else:
         st.text("Device not found.")
 
