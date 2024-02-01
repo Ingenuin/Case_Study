@@ -127,6 +127,16 @@ def maintain_device():
     st.subheader("Select the Device you maintained")
     devices = Device.find_all()
     device_to_maintain = st.selectbox("Select device to maintain:", [device['device_name'] for device in devices])
+    st.subheader("Is this the device you maintained today?")
+    
+    if st.button("Yes"):
+        today = datetime.today().date()
+        device_maintenance(device_to_maintain, today)
+        st.success("")
+    #else:
+    #    st.error("", icon="🚨")
+    
+        
     
 def device_maintenance(device_name, maintenance_date):
     
@@ -146,6 +156,8 @@ def device_maintenance(device_name, maintenance_date):
 
 
 def add_device():
+    
+ 
     st.subheader("Add New Device")
     device_name = st.text_input("Device Name:")
     managed_by_user_id = st.selectbox("Select responsible user:", [user['email'] for user in User.find_all()])
@@ -154,6 +166,10 @@ def add_device():
         handle_add_device(device_name, managed_by_user_id)
 
 def handle_add_device(device_name, managed_by_user_id):
+    
+    today = datetime.today().date()
+    
+    
     if not device_name or not managed_by_user_id:
         st.error("Device name, device ID, and responsible user ID are required.")
     elif not User.load_by_id(managed_by_user_id):
@@ -161,6 +177,13 @@ def handle_add_device(device_name, managed_by_user_id):
     else:
         start_date = st.date_input("Select start date:", min_value=datetime.today().date())
         end_date = st.date_input("Select end date:", min_value=start_date)
+
+        if end_date < start_date:
+            st.error("End date cannot be earlier than start date.")
+        else:
+            new_device = Device(device_name, managed_by_user_id, start_date, end_date, today)
+            new_device.store()
+            st.success("Device added successfully!")
 
 
 def change_device():
