@@ -109,7 +109,7 @@ def manage_devices():
     action = option_menu(
         None,
         ["Add", "Change", "Delete", "Reserve", "Maintenance"],
-        icons=['plus', 'arrow-repeat', "x", "calendar"],
+        icons=['plus', 'arrow-repeat', "x", "calendar", "gear"],
         menu_icon="cast",
         default_index=0,
         orientation="horizontal"
@@ -123,9 +123,30 @@ def manage_devices():
         delete_device()
     elif action == "Reserve":
         reserve_device()
-    elif action == "Maintenance"
+    elif action == "Maintenance":
+        maintain_device()
+        
+def maintain_device():
+    st.subheader("Select the Device you maintained")
+    devices = Device.find_all()
+    device_to_maintain = st.selectbox("Select device to maintain:", [device['device_name'] for device in devices])
+    
+def device_maintenance(device_name, maintenance_date):
+    
+    device_to_maintain = Device.load_by_id(device_name)
+    current_date = datetime.today().date()
 
-    display_existing_devices(devices)
+    # Calculate the time difference between current date and maintenance date
+    time_difference = current_date - maintenance_date
+
+    # Check if the maintenance is needed (last maintenance more than a year ago)
+    if time_difference.days >= 365:  
+        st.error("Device needs to be maintained. Please schedule an appointment.")
+    else:
+        st.success("Device maintenance is up to date.")
+        device_to_maintain.store()
+
+
 
 def add_device():
     st.subheader("Add New Device")
@@ -145,7 +166,19 @@ def handle_add_device(device_name, managed_by_user_id):
         end_date = st.date_input("Select end date:", min_value=start_date)
 
 
-  elif action == "Maintenance":
+def change_device():
+    devices = Device.find_all()
+    st.subheader("Change Device")
+    device_name_to_change = st.selectbox("Select device to change:", [device['device_name'] for device in devices])
+    new_managed_by_user_id = st.selectbox("Select new responsible user:", [user['email'] for user in User.find_all()])
+    new_start_date = st.date_input("Select new start date:")
+    new_end_date = st.date_input("Select new end date:", min_value=new_start_date)
+
+    if st.button("Change Device"):
+        handle_change_device(device_name_to_change, new_managed_by_user_id, new_start_date, new_end_date)
+
+
+    '''elif action == "Maintenance":
         #checks for devices that need to be maintained
         st.subheader("Maintain")
         devices = Device.find_all()
@@ -157,7 +190,7 @@ def handle_add_device(device_name, managed_by_user_id):
             maintenance_date = datetime.today().date()
             device_maintenance(device_to_maintain, maintenance_date)
             
-            maintained_device = Device(device_to_maintain,maintenance_date)
+            maintained_device = Device(device_to_maintain,maintenance_date)'''
 
 
 
@@ -233,22 +266,6 @@ def display_existing_devices(devices):
         st.text(f"  Last Maintenace: {selected_device._Device__last_maintenance}")
     else:
         st.text("Device not found.")
-
-
-def device_maintenance(device_name, maintenance_date):
-    
-    device_to_maintain = Device.load_by_id(device_name)
-    current_date = datetime.today().date()
-
-    # Calculate the time difference between current date and maintenance date
-    time_difference = current_date - maintenance_date
-
-    # Check if the maintenance is needed (last maintenance more than a year ago)
-    if time_difference.days >= 365:  
-        st.error("Device needs to be maintained. Please schedule an appointment.")
-    else:
-        st.success("Device maintenance is up to date.")
-        device_to_maintain.store()
 
 
 
